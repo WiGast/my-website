@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>إضافة مريض - الطبيب</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+</head>
+<body>
+  <h2>إضافة مريض</h2>
+  <form id="addPatientForm">
+    الاسم: <input type="text" id="patientName"><br>
+    العمر: <input type="number" id="patientAge"><br>
+    CH4: <input type="number" id="ch4"><br>
+    CO2: <input type="number" id="co2"><br>
+    H2: <input type="number" id="h2"><br>
+    <button type="submit">إضافة</button>
+  </form>
+
+  <script>
+    const firebaseConfig = {
+      databaseURL: "https://wigast-26ba7-default-rtdb.firebaseio.com"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    document.getElementById("addPatientForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("patientName").value;
+      const data = {
+        age: parseInt(document.getElementById("patientAge").value),
+        CH4: parseFloat(document.getElementById("ch4").value),
+        CO2: parseFloat(document.getElementById("co2").value),
+        H2: parseFloat(document.getElementById("h2").value)
+      };
+      db.ref("patients/" + name).set(data)
+        .then(() => alert("تمت الإضافة بنجاح"))
+        .catch(error => alert("خطأ: " + error.message));
+    });
+
+    // إضافة البيانات الأولية
+    const patients = {
+      "zareb hiba": { age: 22, CH4: 6, H2: 2, CO2: 400 },
+      "ferkazazou balkis": { age: 23, CH4: 12, H2: 8, CO2: 600 },
+      "belroul ikram": { age: 27, CH4: 6, H2: 10, CO2: 400 },
+      "bechaht aya": { age: 23, CH4: 6, H2: 20, CO2: 400 }
+    };
+    Object.entries(patients).forEach(([name, data]) => {
+      db.ref("patients/" + name).set(data);
+    });
+  </script>
+</body>
+</html>

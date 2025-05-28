@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة وعرض المرضى</title>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-database.js"></script>
+</head>
+<body>
+    <!-- نموذج إضافة مريض -->
+    <h2>إضافة مريض</h2>
+    <form id="addPatientForm">
+        <label for="patientName">اسم المريض:</label>
+        <input type="text" id="patientName" required><br><br>
+        
+        <label for="patientAge">العمر:</label>
+        <input type="number" id="patientAge" required><br><br>
+        
+        <label for="ch4">CH4:</label>
+        <input type="number" id="ch4" step="any" required><br><br>
+        
+        <label for="co2">CO2:</label>
+        <input type="number" id="co2" step="any" required><br><br>
+        
+        <label for="h2">H2:</label>
+        <input type="number" id="h2" step="any" required><br><br>
+        
+        <button type="submit">إضافة</button>
+    </form>
+
+    <hr>
+
+    <!-- نموذج البحث عن مريض -->
+    <h2>البحث عن مريض</h2>
+    <input type="text" id="searchName" placeholder="أدخل اسم المريض">
+    <button onclick="loadPatient()">عرض</button>
+    
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        // إعداد Firebase
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // تهيئة Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(app);
+
+        // إضافة مريض
+        document.getElementById("addPatientForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const name = document.getElementById("patientName").value;
+            const data = {
+                age: parseInt(document.getElementById("patientAge").value),
+                CH4: parseFloat(document.getElementById("ch4").value),
+                CO2: parseFloat(document.getElementById("co2").value),
+                H2: parseFloat(document.getElementById("h2").value)
+            };
+            
+            // طباعة البيانات في وحدة التحكم لمتابعة الإضافة
+            console.log("إضافة مريض:", name, data);
+            
+            db.ref("patients/" + name).set(data)
+                .then(() => alert("تمت الإضافة بنجاح"))
+                .catch(error => alert("خطأ: " + error.message));
+        });
+
+        // عرض بيانات المريض عند البحث
+        function loadPatient() {
+            const name = document.getElementById("searchName").value;
+            console.log("اسم المريض المدخل: " + name); // سيتم طباعة اسم المريض هنا
+
+            db.ref("patients/" + name).get().then(snapshot => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    console.log("تم العثور على بيانات المريض: ", data); // سيتم طباعة بيانات المريض هنا
+                    document.getElementById("result").innerHTML = `
+                        <strong>العمر:</strong> ${data.age}<br>
+                        <strong>CH4:</strong> ${data.CH4}<br>
+                        <strong>CO2:</strong> ${data.CO2}<br>
+                        <strong>H2:</strong> ${data.H2}<br>
+                    `;
+                } else {
+                    console.log("لم يتم العثور على المريض.");
+                    document.getElementById("result").innerText = "لا يوجد مريض بهذا الاسم.";
+                }
+            }).catch(error => {
+                console.log("حدث خطأ في القراءة: ", error);
+                document.getElementById("result").innerText = "حدث خطأ في القراءة.";
+            });
+        }
+    </script>
+</body>
+</html>
