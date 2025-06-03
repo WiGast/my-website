@@ -1,54 +1,134 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>إضافة مريض - الطبيب</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <title>صفحة الطبيب - Wigast</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Tahoma, sans-serif;
+      background-color: #f4f6f8;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      margin-top: 30px;
+    }
+    img {
+      width: 120px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #333;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #007BFF;
+      border: none;
+      color: white;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px auto;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      display: block;
+    }
+    #doctorForm {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <h2>إضافة مريض</h2>
-  <form id="addPatientForm">
-    الاسم: <input type="text" id="patientName"><br>
-    العمر: <input type="number" id="patientAge"><br>
-    CH4: <input type="number" id="ch4"><br>
-    CO2: <input type="number" id="co2"><br>
-    H2: <input type="number" id="h2"><br>
-    <button type="submit">إضافة</button>
-  </form>
 
-  <script>
-    const firebaseConfig = {
-      databaseURL: "https://wigast-26ba7-default-rtdb.firebaseio.com"
-    };
+<div class="container">
+  <img src="https://cdn-icons-png.flaticon.com/512/3798/3798087.png" alt="جهاز Wigast">
+  <h2>جهاز تحليل الغازات - Wigast</h2>
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  <button onclick="askPassword()">طبيب</button>
 
-    document.getElementById("addPatientForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const name = document.getElementById("patientName").value;
-      const data = {
-        age: parseInt(document.getElementById("patientAge").value),
-        CH4: parseFloat(document.getElementById("ch4").value),
-        CO2: parseFloat(document.getElementById("co2").value),
-        H2: parseFloat(document.getElementById("h2").value)
-      };
-      db.ref("patients/" + name).set(data)
-        .then(() => alert("تمت الإضافة بنجاح"))
-        .catch(error => alert("خطأ: " + error.message));
-    });
+  <div id="doctorForm">
+    <h3>إدخال بيانات التحليل</h3>
+    <input type="text" id="name" placeholder="اسم المريض">
+    <input type="number" id="ch4" placeholder="نسبة CH4 (الميثان)">
+    <input type="number" id="h2" placeholder="نسبة H2 (الهيدروجين)">
+    <input type="number" id="co2" placeholder="نسبة CO2 (ثاني أكسيد الكربون)">
+    <input type="text" id="condition" placeholder="الحالة" readonly>
+    <button onclick="calculateAndAdd()">إضافة</button>
+  </div>
 
-    // إضافة البيانات الأولية
-    const patients = {
-      "zareb hiba": { age: 22, CH4: 6, H2: 2, CO2: 400 },
-      "ferkazazou balkis": { age: 23, CH4: 12, H2: 8, CO2: 600 },
-      "belroul ikram": { age: 27, CH4: 6, H2: 10, CO2: 400 },
-      "bechaht aya": { age: 23, CH4: 6, H2: 20, CO2: 400 }
-    };
-    Object.entries(patients).forEach(([name, data]) => {
-      db.ref("patients/" + name).set(data);
-    });
-  </script>
+  <div id="result"></div>
+</div>
+
+<script>
+  // إعداد Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyD...", // استبدل بهذه القيم الحقيقية
+    authDomain: "wigast-26ba7.firebaseapp.com",
+    databaseURL: "https://wigast-26ba7-default-rtdb.firebaseio.com",
+    projectId: "wigast-26ba7",
+    storageBucket: "wigast-26ba7.appspot.com",
+    messagingSenderId: "xxxxxxx",
+    appId: "1:xxxxxxx:web:xxxxxxx"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // إظهار النموذج بعد التحقق من كلمة السر
+  function askPassword() {
+    const password = prompt("📌 أدخل كلمة سر الطبيب:");
+    if (password === "gastrologue22h") {
+      document.getElementById("doctorForm").style.display = "block";
+    } else {
+      alert("❌ كلمة السر غير صحيحة!");
+    }
+  }
+
+  // حساب الحالة الصحية
+  function calculateCondition(ch4, h2, co2) {
+    let conditions = [];
+    if (h2 > 21) conditions.push("❗ SIBO: فرط نمو البكتيريا في الأمعاء الدقيقة (الهيدروجين مرتفع)");
+    if (ch4 > 10) conditions.push("❗ IBS: احتمال القولون العصبي (الميثان مرتفع)");
+    if (co2 < 10) conditions.push("⚠️ ABS: خلل امتصاص أو نشاط غير طبيعي للبكتيريا اللاهوائية");
+    return conditions.length ? conditions.join(" | ") : "✅ حالة طبيعية";
+  }
+
+  // إضافة بيانات المريض
+  function calculateAndAdd() {
+    const name = document.getElementById("name").value.trim();
+    const ch4 = parseFloat(document.getElementById("ch4").value);
+    const h2 = parseFloat(document.getElementById("h2").value);
+    const co2 = parseFloat(document.getElementById("co2").value);
+
+    if (name && !isNaN(ch4) && !isNaN(h2) && !isNaN(co2)) {
+      const condition = calculateCondition(ch4, h2, co2);
+      document.getElementById("condition").value = condition;
+
+      db.ref("patients/" + name).set({ ch4, h2, co2, condition }).then(() => {
+        alert("✅ تمت إضافة البيانات");
+        document.getElementById("name").value = "";
+        document.getElementById("ch4").value = "";
+        document.getElementById("h2").value = "";
+        document.getElementById("co2").value = "";
+        document.getElementById("condition").value = "";
+      });
+    } else {
+      alert("❗ يرجى ملء جميع الخانات بالأرقام الصحيحة");
+    }
+  }
+</script>
+
 </body>
 </html>
